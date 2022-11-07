@@ -1,25 +1,72 @@
 #include <Windows.h>
 #define SIZE_BUFFER 260
+
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
 	DWORD dwBytesRead = 0;
 	char ReadBuffer[20];
-	HANDLE file = CreateFile(L"vvod.txt", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	int space = 0;
+	int coun_space = 0;
+	int countnumbers = 0;
+	float a, b, c;
+	HANDLE file = CreateFile("vvod.txt", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (file != INVALID_HANDLE_VALUE)
 	{
-		LPSTR buffer = (CHAR*)calloc(SIZE_BUFFER + 1, sizeof(CHAR));
-		DWORD iNumRead = 0;//Обязательный параметр. получает кол-во считанных байт
-		LPCSTR str = " 4 5 8\r\n";
-		DWORD iNumWrite = 0;
-		if (!WriteFile(file, str, strlen(str), &iNumWrite, NULL)) {
-			ReadFile(file, str, strlen(str), &iNumWrite, NULL);
+		DWORD size = 100,//кол-во символов которые надо прочитать
+			bytes;//типо счетчик реально прочитанных символов
+		char* text = calloc(size + 1, 1);//буфер куда записывается прочитанное 
+		ReadFile(file, text, size, &bytes, NULL);
+		for (size_t i = 0; i < bytes; i++)
+		{
+			if (text[i] == '\n') {
+				space = 1;
+			}
+			if (text[i] < -1 || text[i] > 96) {
+				file = CreateFile("otvter", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+				WriteFile(file, "Данные не верны", size, bytes, NULL);
+				return 1;
+			}
 		}
-		file = CreateFile(L"otvet.txt", GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (file != INVALID_HANDLE_VALUE) {
-			WriteFile(file, str, strlen(str), &iNumWrite, NULL);
+		if (space) {
+			for (size_t i = 0; i < bytes; i++)
+			{
+				if (text[i] == "\r" && text[i + 1] == "\n") {
+					coun_space++;
+					char* countnumber = calloc(countnumbers + 1, 1);
+					for (size_t l = 0; l < countnumbers; l++)
+					{
+						countnumber = text[i - (countnumbers - i)];
+					}
+					countnumbers = 0;
+					switch (coun_space)
+					{
+					case 1:
+						a = atof(countnumbers);
+						break;
+					case 2:
+						b = atof(countnumbers);
+						break;
+					default:
+						break;
+					}
+					i++;
+					continue;
+				}
+				if (i == bytes)//в конце нет разделителей, тк что заместо него конец текста
+				{
+					char* f = calloc(countnumbers, 1);
+					for (size_t l = 0; l < countnumbers; l++)
+					{
+						f[l] = text[i - (countnumbers - l)];
+					}
+					c = atof(f);
+				}
+				countnumbers++;
+			}
 		}
 	}
+
 }
 
 
