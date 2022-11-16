@@ -1,86 +1,76 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
-#define SIZE_BUFFER 260
+#include <math.h>
+#include <stdio.h>
+DWORD countreadbytes = 100;
+DWORD readingbytes = 100;
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
-	DWORD dwBytesRead = 0;
-	char ReadBuffer[20];
-	int space = 0;
-	int coun_space = 0;
-	int countnumbers = 0;
-	float a, b, c;
-	HANDLE file = CreateFile("vvod.txt", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE file = CreateFile("data.txt", GENERIC_READ, NULL, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if (file != INVALID_HANDLE_VALUE)
-	{
-		DWORD size = 100,//кол-во символов которые надо прочитать
-			bytes;//типо счетчик реально прочитанных символов
-		char* text = calloc(size + 1, 1);//буфер куда записывается прочитанное 
-		ReadFile(file, text, size, &bytes, NULL);
-		for (size_t i = 0; i < bytes; i++)
-		{
-			if (text[i] == '\n') {
-				space = 1;
-			}
-			if (text[i] < -1 || text[i] > 96) {
-				file = CreateFile("otvter", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-				WriteFile(file, "Данные не верны", size, bytes, NULL);
+	if (file != INVALID_HANDLE_VALUE) {
+		char* stroka = calloc(100, sizeof(char));
+		if (!(ReadFile(file, stroka, countreadbytes, &readingbytes, NULL))) {
+			file = CreateFile("result.txt", GENERIC_READ, NULL, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+			sprintf(stroka, "Данные неудалось считать");
+			readingbytes = strlen(stroka);
+			WriteFile(file, stroka, countreadbytes, &readingbytes, NULL);
+			return 1;
+		}
+		int i = 0;
+		while (stroka[i]) {
+			i++;
+			if (stroka[i] > 96 || stroka[i] < -1) {
+				file = CreateFile("result.txt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+				sprintf(stroka, "Введены не те данные");
+				readingbytes = strlen(stroka);
+				WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
 				return 1;
 			}
 		}
-		if (space) {
-			for (size_t i = 0; i < bytes; i++)
-			{
-				if (text[i] == "\r" && text[i + 1] == "\n") {
-					coun_space++;
-					char* countnumber = calloc(countnumbers + 1, 1);
-					for (size_t l = 0; l < countnumbers; l++)
-					{
-						countnumber = text[i - (countnumbers - i)];
-					}
-					countnumbers = 0;
-					switch (coun_space)
-					{
-					case 1:
-						a = atof(countnumbers);
-						break;
-					case 2:
-						b = atof(countnumbers);
-						break;
-					default:
-						break;
-					}
+		char* istr;
+		istr = strtok(stroka, " ");
+		double numbers[3];
+		numbers[0] = atof(istr);
+		i = 1;
+		while (istr != NULL)
+		{
+			istr = strtok(NULL, " ");
+			if (istr != NULL) {
+				if (istr[0] != '\r') {
+					numbers[i] = atof(istr);
 					i++;
-					continue;
 				}
-				if (i == bytes)//в конце нет разделителей, тк что заместо него конец текста
-				{
-					char* f = calloc(countnumbers, 1);
-					for (size_t l = 0; l < countnumbers; l++)
-					{
-						f[l] = text[i - (countnumbers - l)];
-					}
-					c = atof(f);
-				}
-				countnumbers++;
+
 			}
 		}
+		kradrat_koren(numbers[0], numbers[1], numbers[2]);
 	}
-
 }
 
 
 int kradrat_koren(double a, double b, double c) {
+	HANDLE file = CreateFile("result.txt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	double diskrimenant = sqrt(pow(b, 2) - 4 * a * c);
+	char* stroka = calloc(100, sizeof(char));
 	if (diskrimenant < 0) {
+		sprintf(stroka, "Дискриминант меньше 0\n Корней нет");
+		readingbytes = strlen(stroka);
+		WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
 	}
 	if (diskrimenant == 0) {
 		c = (-b) / (2 * a);
+		sprintf(stroka,"Дискрименант равен = 0\n x1 = %f\n x2 = %f", c,c);
+		readingbytes = strlen(stroka);
+		WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
 	}
 	if (diskrimenant > 0) {
 		c = (-b + diskrimenant) / (2 * a);
-		c = (-b - diskrimenant) / (2 * a);
+		a = (-b - diskrimenant) / (2 * a);
+		sprintf(stroka, "Корень дискрименанта равен = %f\n x1 = %f\n x2 = %f", diskrimenant , c, a);
+		readingbytes = strlen(stroka);
+		WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
 	}
-
 	return 0;
 }
