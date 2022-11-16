@@ -29,21 +29,22 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 				return 1;
 			}
 		}
-		char* istr;
-		istr = strtok(stroka, " ");
+		char* number;
+		number = strtok(stroka, " ");
 		double numbers[3];
-		numbers[0] = atof(istr);
+		numbers[0] = atof(number);
 		i = 1;
-		while (istr != NULL)
+		while (number != NULL)
 		{
-			istr = strtok(NULL, " ");
-			if (istr != NULL) {
-				if (istr[0] != '\r') {
-					numbers[i] = atof(istr);
+			number = strtok(NULL, " ");
+			if (number != NULL) {
+				if (number[0] != '\r') {
+					numbers[i] = atof(number);
 					i++;
 				}
-
 			}
+			if (i > 3)
+				break;
 		}
 		kradrat_koren(numbers[0], numbers[1], numbers[2]);
 	}
