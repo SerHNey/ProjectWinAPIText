@@ -2,20 +2,21 @@
 #include <Windows.h>
 #include <math.h>
 #include <stdio.h>
-DWORD countreadbytes = 100;
-DWORD readingbytes = 100;
+
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
 	HANDLE file = CreateFile("data.txt", GENERIC_READ, NULL, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
+
 	if (file != INVALID_HANDLE_VALUE) {
+		DWORD countreadbytes = 100;
+		DWORD readingbytes = 100;
 		char* stroka = calloc(100, sizeof(char));
 		if (!(ReadFile(file, stroka, countreadbytes, &readingbytes, NULL))) {
 			file = CreateFile("result.txt", GENERIC_READ, NULL, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 			sprintf(stroka, "Данные неудалось считать");
-			readingbytes = strlen(stroka);
-			WriteFile(file, stroka, countreadbytes, &readingbytes, NULL);
+			WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
 			return 1;
 		}
 		int i = 0;
@@ -24,14 +25,13 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 			if (stroka[i] > 96 || stroka[i] < -1) {
 				file = CreateFile("result.txt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 				sprintf(stroka, "Введены не те данные");
-				readingbytes = strlen(stroka);
-				WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
+				WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
 				return 1;
 			}
 		}
 		char* number;
 		number = strtok(stroka, " ");
-		double numbers[3];
+		double numbers[3] = { 0,0,0 };
 		numbers[0] = atof(number);
 		i = 1;
 		while (number != NULL)
@@ -53,25 +53,73 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 
 int kradrat_koren(double a, double b, double c) {
 	HANDLE file = CreateFile("result.txt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	double diskrimenant = sqrt(pow(b, 2) - 4 * a * c);
+	DWORD countreadbytes = 100;
+	DWORD readingbytes = 100;
 	char* stroka = calloc(100, sizeof(char));
-	if (diskrimenant < 0) {
-		sprintf(stroka, "Дискриминант меньше 0\n Корней нет");
-		readingbytes = strlen(stroka);
-		WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
+	float x1, x2;
+	
+	if ((a != 0) && (b != 0) && (c != 0))
+	{
+		double diskrimenant = pow(b, 2) - 4 * a * c;
+		if (diskrimenant < 0)
+		{
+			sprintf(stroka, "Дискриминант = %f Корней нет\n ", diskrimenant);
+			WriteFile(file, stroka, strlen(stroka) , &readingbytes, NULL);
+		}
+		else if (diskrimenant == 0)
+		{
+			x1 = -b / (2 * a);
+			sprintf(stroka, "Дискриминант = %f \nКол-во корней:1\n x1: %f", &diskrimenant, x1);
+			WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+
+		}
+		else if (diskrimenant > 0)
+		{
+			x1 = (-b + sqrt(diskrimenant)) / (2 * a);
+			x2 = (-b - sqrt(diskrimenant)) / (2 * a);
+			sprintf(stroka, "Дискриминант = %f \nКол-во корней:2 \nx1: %f x2: %f", diskrimenant, x1, x2);
+			WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+
+		}
 	}
-	if (diskrimenant == 0) {
-		c = (-b) / (2 * a);
-		sprintf(stroka,"Дискрименант равен = 0\n x1 = %f\n x2 = %f", c,c);
-		readingbytes = strlen(stroka);
-		WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
+	else if ((c == 0) && (b == 0))
+	{
+		x1 = 0;
+		sprintf(stroka, "Корень равен = %f", x1);
+		WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+
 	}
-	if (diskrimenant > 0) {
-		c = (-b + diskrimenant) / (2 * a);
-		a = (-b - diskrimenant) / (2 * a);
-		sprintf(stroka, "Корень дискрименанта равен = %f\n x1 = %f\n x2 = %f", diskrimenant , c, a);
-		readingbytes = strlen(stroka);
-		WriteFile(file, stroka, readingbytes, &readingbytes, NULL);
+	else if (b == 0)
+	{
+
+		if (-c / a < 0)
+		{
+			sprintf(stroka, "Корней нет");
+			WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+
+		}
+		else
+		{
+			x1 = sqrt((-c / a));
+			sprintf(stroka, "Корени равены = %f и -%f", x1, x1);
+			WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+
+		}
 	}
+	else if (c == 0)
+	{
+		x1 = -b / a;
+		x2 = 0;
+		sprintf(stroka, "Корени равены = %f и %f", x1, x2);
+		WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+	}
+	else if (a == 0)
+	{
+		x1 = -c / b;
+		sprintf(stroka, "Корень равен = %f", x1);
+		WriteFile(file, stroka, strlen(stroka), &readingbytes, NULL);
+
+	}
+
 	return 0;
 }
